@@ -11,14 +11,14 @@ func GetRequestData(key string, reqType global.RequestType, actionType global.Ac
 	sql := ""
 	switch reqType {
 	case global.AccessNumber:
-		sql = `select ins.instance_key,ins.file_name,im.img_file_name,sl.ip,sl.s_virtual_dir
+		sql = `select ins.instance_key,ins.file_name,im.img_file_name,sl.ip,sl.s_virtual_dir,ins.FileExist,im.file_exist
 		from instance ins
 		join image im on ins.instance_key = im.instance_key
 		join study_location sl on sl.n_station_code = ins.location_code
 		join study s on s.study_key = ins.study_key
 		where s.accession_number = ?;`
 	case global.UidEnc:
-		sql = `select ins.instance_key,ins.file_name,im.img_file_name,sl.ip,sl.s_virtual_dir
+		sql = `select ins.instance_key,ins.file_name,im.img_file_name,sl.ip,sl.s_virtual_dir,ins.FileExist,im.file_exist
 		from instance ins
 		join image im on ins.instance_key = im.instance_key
 		join study_location sl on sl.n_station_code = ins.location_code
@@ -36,8 +36,8 @@ func GetRequestData(key string, reqType global.RequestType, actionType global.Ac
 	defer rows.Close()
 	for rows.Next() {
 		key := KeyData{}
-		_ = rows.Scan(&key.instance_key, &key.dcmfile, &key.imgfile, &key.ip, &key.virpath)
-		if key.imgfile.String != "" {
+		_ = rows.Scan(&key.instance_key, &key.dcmfile, &key.imgfile, &key.ip, &key.virpath, &key.dcmstatus, &key.jpgstatus)
+		if key.imgfile.String != "" && key.jpgstatus.Int16 == int16(global.FileNotExist) {
 			file_key, file_path := general.GetFilePath(key.imgfile.String, key.ip.String, key.virpath.String)
 			data := global.ObjectData{
 				InstanceKey: key.instance_key.Int64,
@@ -49,7 +49,7 @@ func GetRequestData(key string, reqType global.RequestType, actionType global.Ac
 			}
 			global.ObjectDataChan <- data
 		}
-		if key.dcmfile.String != "" {
+		if key.dcmfile.String != "" && key.dcmstatus.Int16 == int16(global.FileNotExist) {
 			file_key, file_path := general.GetFilePath(key.dcmfile.String, key.ip.String, key.virpath.String)
 			data := global.ObjectData{
 				InstanceKey: key.instance_key.Int64,
@@ -67,7 +67,7 @@ func GetRequestData(key string, reqType global.RequestType, actionType global.Ac
 // 上传数据后更新数据库
 func UpdateUplaod(key int64, filetype global.FileModel, status bool) {
 	// 获取更新时时间
-	local, _ := time.LoadLocation("")
+	local, _ := time.LoadLocation("Local")
 	timeFormat := "2006-01-02 15:04:05"
 	curtime := time.Now().In(local).Format(timeFormat)
 	switch global.ObjectSetting.OBJECT_Store_Type {
@@ -124,7 +124,7 @@ func UpdateUplaod(key int64, filetype global.FileModel, status bool) {
 // 数据下载更新数据库
 func UpdateDown(key int64, filetype global.FileModel, status bool) {
 	// 获取更新时时间
-	local, _ := time.LoadLocation("")
+	local, _ := time.LoadLocation("Local")
 	timeFormat := "2006-01-02 15:04:05"
 	curtime := time.Now().In(local).Format(timeFormat)
 	switch filetype {

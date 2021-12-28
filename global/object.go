@@ -25,6 +25,14 @@ const (
 	JPG                  // JPG 文件
 )
 
+// 文件状态
+type FileStatus int
+
+const (
+	FileNotExist FileStatus = iota // 文件不存在
+	FileExist                      // 文件存在
+	FileFailed                     // 文件失败
+)
 const (
 	PublicCloud  int = iota // 共有云
 	PrivateCloud            // 私有云

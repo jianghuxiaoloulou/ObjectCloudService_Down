@@ -193,7 +193,7 @@ func DownFile(obj *Object) bool {
 	defer resp.Body.Close()
 	code := resp.StatusCode
 	if code != 200 {
-		global.Logger.Error("下载失败：" + obj.FilePath)
+		global.Logger.Error(resp.StatusCode, "下载失败："+obj.FilePath)
 		return false
 	}
 	len, _ := strconv.ParseInt(resp.Header.Get("Content-size"), 10, 64)
