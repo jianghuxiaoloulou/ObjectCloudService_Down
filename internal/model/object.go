@@ -11,14 +11,14 @@ func GetRequestData(key string, reqType global.RequestType, actionType global.Ac
 	sql := ""
 	switch reqType {
 	case global.AccessNumber:
-		sql = `select ins.instance_key,ins.file_name,im.img_file_name,sl.ip,sl.s_virtual_dir,ins.FileExist,im.file_exist
+		sql = `select ins.instance_key,ins.file_name,im.img_file_name,im.dcm_file_name_remote,im.img_file_name_remote,sl.ip,sl.s_virtual_dir,ins.FileExist,im.file_exist
 		from instance ins
 		join image im on ins.instance_key = im.instance_key
 		join study_location sl on sl.n_station_code = ins.location_code
 		join study s on s.study_key = ins.study_key
 		where s.accession_number = ?;`
 	case global.UidEnc:
-		sql = `select ins.instance_key,ins.file_name,im.img_file_name,sl.ip,sl.s_virtual_dir,ins.FileExist,im.file_exist
+		sql = `select ins.instance_key,ins.file_name,im.img_file_name,im.dcm_file_name_remote,im.img_file_name_remote,sl.ip,sl.s_virtual_dir,ins.FileExist,im.file_exist
 		from instance ins
 		join image im on ins.instance_key = im.instance_key
 		join study_location sl on sl.n_station_code = ins.location_code
@@ -36,12 +36,12 @@ func GetRequestData(key string, reqType global.RequestType, actionType global.Ac
 	defer rows.Close()
 	for rows.Next() {
 		key := KeyData{}
-		_ = rows.Scan(&key.instance_key, &key.dcmfile, &key.imgfile, &key.ip, &key.virpath, &key.dcmstatus, &key.jpgstatus)
+		_ = rows.Scan(&key.instance_key, &key.dcmfile, &key.imgfile, &key.dcmremotekey, &key.jpgremotekey, &key.ip, &key.virpath, &key.dcmstatus, &key.jpgstatus)
 		if key.imgfile.String != "" && key.jpgstatus.Int16 == int16(global.FileNotExist) {
-			file_key, file_path := general.GetFilePath(key.imgfile.String, key.ip.String, key.virpath.String)
+			file_path := general.GetFilePath(key.imgfile.String, key.ip.String, key.virpath.String)
 			data := global.ObjectData{
 				InstanceKey: key.instance_key.Int64,
-				FileKey:     file_key,
+				FileKey:     key.jpgremotekey.String,
 				FilePath:    file_path,
 				ActionType:  actionType,
 				FileType:    global.JPG,
@@ -50,10 +50,10 @@ func GetRequestData(key string, reqType global.RequestType, actionType global.Ac
 			global.ObjectDataChan <- data
 		}
 		if key.dcmfile.String != "" && key.dcmstatus.Int16 == int16(global.FileNotExist) {
-			file_key, file_path := general.GetFilePath(key.dcmfile.String, key.ip.String, key.virpath.String)
+			file_path := general.GetFilePath(key.dcmfile.String, key.ip.String, key.virpath.String)
 			data := global.ObjectData{
 				InstanceKey: key.instance_key.Int64,
-				FileKey:     file_key,
+				FileKey:     key.dcmremotekey.String,
 				FilePath:    file_path,
 				ActionType:  actionType,
 				FileType:    global.DCM,

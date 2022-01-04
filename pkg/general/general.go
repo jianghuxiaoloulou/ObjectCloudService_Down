@@ -26,12 +26,7 @@ type UploadFile struct {
 	Filepath string
 }
 
-func GetFilePath(file, ip, virpath string) (key, path string) {
-	key += global.ObjectSetting.UPLOAD_ROOT
-	key += "\\"
-	key += file
-	key = strings.Replace(key, "\\", "/", -1)
-
+func GetFilePath(file, ip, virpath string) (path string) {
 	path += "\\\\"
 	path += ip
 	path += "\\"
