@@ -11,18 +11,20 @@ func GetRequestData(key string, reqType global.RequestType, actionType global.Ac
 	sql := ""
 	switch reqType {
 	case global.AccessNumber:
-		sql = `select ins.instance_key,ins.file_name,im.img_file_name,im.dcm_file_name_remote,im.img_file_name_remote,sl.ip,sl.s_virtual_dir,ins.FileExist,im.file_exist
+		sql = `select ins.instance_key,ins.file_name,im.img_file_name,fr.dcm_file_name_remote,fr.img_file_name_remote,sl.ip,sl.s_virtual_dir,fr.dcm_file_exist,fr.img_file_exist
 		from instance ins
-		join image im on ins.instance_key = im.instance_key
-		join study_location sl on sl.n_station_code = ins.location_code
-		join study s on s.study_key = ins.study_key
+		left join image im on ins.instance_key = im.instance_key
+		left join file_remote fr on ins.instance_key = fr.instance_key
+		left join study_location sl on sl.n_station_code = ins.location_code
+		left join study s on s.study_key = ins.study_key
 		where s.accession_number = ?;`
 	case global.UidEnc:
-		sql = `select ins.instance_key,ins.file_name,im.img_file_name,im.dcm_file_name_remote,im.img_file_name_remote,sl.ip,sl.s_virtual_dir,ins.FileExist,im.file_exist
+		sql = `select ins.instance_key,ins.file_name,im.img_file_name,fr.dcm_file_name_remote,fr.img_file_name_remote,sl.ip,sl.s_virtual_dir,fr.dcm_file_exist,fr.img_file_exist
 		from instance ins
-		join image im on ins.instance_key = im.instance_key
-		join study_location sl on sl.n_station_code = ins.location_code
-		join study s on s.study_key = ins.study_key
+		left join image im on ins.instance_key = im.instance_key
+		left join file_remote fr on ins.instance_key = fr.instance_key
+		left join study_location sl on sl.n_station_code = ins.location_code
+		left join study s on s.study_key = ins.study_key
 		where s.uid_enc = ?;`
 	}
 	if sql == "" {
@@ -76,21 +78,21 @@ func UpdateUplaod(key int64, filetype global.FileModel, status bool) {
 		case global.DCM:
 			if status {
 				global.Logger.Info("***公有云DCM数据上传成功，更新状态***")
-				sql := `update instance ins set ins.file_exist_obs_cloud = 1,ins.location_code_obs_cloud = ?,ins.update_time_obs_cloud = ? where ins.instance_key = ?;`
+				sql := `update file_remote fr set fr.dcm_file_exist_obs_cloud = 1,fr.dcm_location_code_obs_cloud = ?,fr.dcm_update_time_obs_cloud = ? where fr.instance_key = ?;`
 				global.DBEngine.Exec(sql, global.ObjectSetting.OBJECT_Upload_Success_Code, curtime, key)
 			} else {
 				global.Logger.Info("***公有云DCM数据上传失败，更新状态***")
-				sql := `update instance ins set ins.file_exist_obs_cloud = 2 where ins.instance_key = ?;`
+				sql := `update file_remote fr set fr.dcm_file_exist_obs_cloud = 2 where fr.instance_key = ?;`
 				global.DBEngine.Exec(sql, key)
 			}
 		case global.JPG:
 			if status {
 				global.Logger.Info("***公有云JPG数据上传成功，更新状态***")
-				sql := `update image im set im.file_exist_obs_cloud = 1,im.update_time_obs_cloud = ? where im.instance_key = ?;`
+				sql := `update file_remote fr set fr.img_file_exist_obs_cloud = 1,fr.img_update_time_obs_cloud = ? where fr.instance_key = ?;`
 				global.DBEngine.Exec(sql, curtime, key)
 			} else {
 				global.Logger.Info("***公有云JPG数据上传失败，更新状态***")
-				sql := `update image im set im.file_exist_obs_cloud = 2 where im.instance_key = ?;`
+				sql := `update file_remote fr set fr.img_file_exist_obs_cloud = 2 where fr.instance_key = ?;`
 				global.DBEngine.Exec(sql, key)
 			}
 		}
@@ -99,22 +101,22 @@ func UpdateUplaod(key int64, filetype global.FileModel, status bool) {
 		case global.DCM:
 			if status {
 				global.Logger.Info("***私有云DCM数据上传成功，更新状态***")
-				sql := `update instance ins set ins.file_exist_obs_local = 1,ins.location_code_obs_local = ?,ins.update_time_obs_local = ? where ins.instance_key = ?;`
+				sql := `update file_remote fr set fr.dcm_file_exist_obs_local = 1,fr.dcm_location_code_obs_local = ?,fr.dcm_update_time_obs_local = ? where fr.instance_key = ?;`
 				global.DBEngine.Exec(sql, global.ObjectSetting.OBJECT_Upload_Success_Code, curtime, key)
 
 			} else {
 				global.Logger.Info("***私有云DCM数据上传失败，更新状态***")
-				sql := `update instance ins set ins.file_exist_obs_local = 2 where ins.instance_key = ?;`
+				sql := `update file_remote fr set fr.dcm_file_exist_obs_local = 2 where fr.instance_key = ?;`
 				global.DBEngine.Exec(sql, key)
 			}
 		case global.JPG:
 			if status {
 				global.Logger.Info("***私有云JPG数据上传成功，更新状态***")
-				sql := `update image im set im.file_exist_obs_local = 1,im.update_time_obs_local = ? where im.instance_key = ?;`
+				sql := `update file_remote fr set fr.img_file_exist_obs_local = 1,fr.img_update_time_obs_local = ? where fr.instance_key = ?;`
 				global.DBEngine.Exec(sql, curtime, key)
 			} else {
 				global.Logger.Info("***私有云JPG数据上传失败，更新状态***")
-				sql := `update image im set im.file_exist_obs_local = 2 where im.instance_key = ?;`
+				sql := `update file_remote fr set fr.img_file_exist_obs_local = 2 where fr.instance_key = ?;`
 				global.DBEngine.Exec(sql, key)
 			}
 		}
@@ -131,21 +133,21 @@ func UpdateDown(key int64, filetype global.FileModel, status bool) {
 	case global.DCM:
 		if status {
 			global.Logger.Info("***DCM数据下载成功，更新状态***")
-			sql := `update instance ins set ins.FileExist = 1,ins.update_time_retrieve = ? where ins.instance_key = ?;`
+			sql := `update file_remote fr set fr.dcm_file_exist = 1,fr.dcm_update_time_retrieve = ? where fr.instance_key = ?;`
 			global.DBEngine.Exec(sql, curtime, key)
 		} else {
 			global.Logger.Info("***DCM数据下载失败，更新状态***")
-			sql := `update instance ins set ins.FileExist = 2 where ins.instance_key = ?;`
+			sql := `update file_remote fr set fr.dcm_file_exist = 2 where fr.instance_key = ?;`
 			global.DBEngine.Exec(sql, key)
 		}
 	case global.JPG:
 		if status {
 			global.Logger.Info("***JPG数据下载成功，更新状态***")
-			sql := `update image im set im.file_exist = 1,im.update_time_retrieve = ? where im.instance_key = ?;`
+			sql := `update file_remote fr set fr.img_file_exist = 1, where fr.instance_key = ?;`
 			global.DBEngine.Exec(sql, curtime, key)
 		} else {
 			global.Logger.Info("***JPG数据下载失败，更新状态***")
-			sql := `update image im set im.file_exist = 2 where im.instance_key = ?;`
+			sql := `update file_remote fr set fr.img_file_exist = 2 where fr.instance_key = ?;`
 			global.DBEngine.Exec(sql, key)
 		}
 	}
