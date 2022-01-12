@@ -3,6 +3,7 @@ package model
 import (
 	"WowjoyProject/ObjectCloudService_Down/global"
 	"WowjoyProject/ObjectCloudService_Down/pkg/general"
+	"strings"
 	"time"
 )
 
@@ -43,7 +44,7 @@ func GetRequestData(key string, reqType global.RequestType, actionType global.Ac
 			file_path := general.GetFilePath(key.imgfile.String, key.ip.String, key.virpath.String)
 			data := global.ObjectData{
 				InstanceKey: key.instance_key.Int64,
-				FileKey:     key.jpgremotekey.String,
+				FileKey:     strings.Replace(key.jpgremotekey.String, "\\", "/", -1),
 				FilePath:    file_path,
 				ActionType:  actionType,
 				FileType:    global.JPG,
@@ -55,7 +56,7 @@ func GetRequestData(key string, reqType global.RequestType, actionType global.Ac
 			file_path := general.GetFilePath(key.dcmfile.String, key.ip.String, key.virpath.String)
 			data := global.ObjectData{
 				InstanceKey: key.instance_key.Int64,
-				FileKey:     key.dcmremotekey.String,
+				FileKey:     strings.Replace(key.dcmremotekey.String, "\\", "/", -1),
 				FilePath:    file_path,
 				ActionType:  actionType,
 				FileType:    global.DCM,
