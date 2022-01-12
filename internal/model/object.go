@@ -11,7 +11,7 @@ func GetRequestData(key string, reqType global.RequestType, actionType global.Ac
 	sql := ""
 	switch reqType {
 	case global.AccessNumber:
-		sql = `select ins.instance_key,ins.file_name,im.img_file_name,fr.dcm_file_name_remote,fr.img_file_name_remote,sl.ip,sl.s_virtual_dir,fr.dcm_file_exist,fr.img_file_exist
+		sql = `select ins.instance_key,ins.file_name,im.img_file_name,fr.dcm_file_name_remote,fr.img_file_name_remote,fr.dcm_file_exist_obs_local,fr.img_file_exist_obs_local,fr.dcm_file_exist_obs_cloud,fr.img_file_exist_obs_cloud,sl.ip,sl.s_virtual_dir,fr.dcm_file_exist,fr.img_file_exist
 		from instance ins
 		left join image im on ins.instance_key = im.instance_key
 		left join file_remote fr on ins.instance_key = fr.instance_key
@@ -19,7 +19,7 @@ func GetRequestData(key string, reqType global.RequestType, actionType global.Ac
 		left join study s on s.study_key = ins.study_key
 		where s.accession_number = ?;`
 	case global.UidEnc:
-		sql = `select ins.instance_key,ins.file_name,im.img_file_name,fr.dcm_file_name_remote,fr.img_file_name_remote,sl.ip,sl.s_virtual_dir,fr.dcm_file_exist,fr.img_file_exist
+		sql = `select ins.instance_key,ins.file_name,im.img_file_name,fr.dcm_file_name_remote,fr.img_file_name_remote,fr.dcm_file_exist_obs_local,fr.img_file_exist_obs_local,fr.dcm_file_exist_obs_cloud,fr.img_file_exist_obs_cloud,sl.ip,sl.s_virtual_dir,fr.dcm_file_exist,fr.img_file_exist
 		from instance ins
 		left join image im on ins.instance_key = im.instance_key
 		left join file_remote fr on ins.instance_key = fr.instance_key
@@ -38,8 +38,8 @@ func GetRequestData(key string, reqType global.RequestType, actionType global.Ac
 	defer rows.Close()
 	for rows.Next() {
 		key := KeyData{}
-		_ = rows.Scan(&key.instance_key, &key.dcmfile, &key.imgfile, &key.dcmremotekey, &key.jpgremotekey, &key.ip, &key.virpath, &key.dcmstatus, &key.jpgstatus)
-		if key.imgfile.String != "" && key.jpgstatus.Int16 == int16(global.FileNotExist) {
+		_ = rows.Scan(&key.instance_key, &key.dcmfile, &key.imgfile, &key.dcmremotekey, &key.jpgremotekey, &key.dcmlocalstatus, &key.jpglocalstatus, &key.dcmcloudstatus, &key.jpgcloudstatus, &key.ip, &key.virpath, &key.dcmstatus, &key.jpgstatus)
+		if key.imgfile.String != "" && key.jpgstatus.Int16 == int16(global.FileNotExist) && (key.jpglocalstatus.Int16 == int16(global.FileExist) || key.jpgcloudstatus.Int16 == int16(global.FileExist)) {
 			file_path := general.GetFilePath(key.imgfile.String, key.ip.String, key.virpath.String)
 			data := global.ObjectData{
 				InstanceKey: key.instance_key.Int64,
@@ -51,7 +51,7 @@ func GetRequestData(key string, reqType global.RequestType, actionType global.Ac
 			}
 			global.ObjectDataChan <- data
 		}
-		if key.dcmfile.String != "" && key.dcmstatus.Int16 == int16(global.FileNotExist) {
+		if key.dcmfile.String != "" && key.dcmstatus.Int16 == int16(global.FileNotExist) && (key.dcmlocalstatus.Int16 == int16(global.FileExist) || key.dcmcloudstatus.Int16 == int16(global.FileExist)) {
 			file_path := general.GetFilePath(key.dcmfile.String, key.ip.String, key.virpath.String)
 			data := global.ObjectData{
 				InstanceKey: key.instance_key.Int64,
@@ -143,8 +143,8 @@ func UpdateDown(key int64, filetype global.FileModel, status bool) {
 	case global.JPG:
 		if status {
 			global.Logger.Info("***JPG数据下载成功，更新状态***")
-			sql := `update file_remote fr set fr.img_file_exist = 1, where fr.instance_key = ?;`
-			global.DBEngine.Exec(sql, curtime, key)
+			sql := `update file_remote fr set fr.img_file_exist = 1 where fr.instance_key = ?;`
+			global.DBEngine.Exec(sql, key)
 		} else {
 			global.Logger.Info("***JPG数据下载失败，更新状态***")
 			sql := `update file_remote fr set fr.img_file_exist = 2 where fr.instance_key = ?;`
