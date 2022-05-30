@@ -31,7 +31,7 @@ func GetRequestData(key string, reqType global.RequestType, actionType global.Ac
 	if sql == "" {
 		return
 	}
-	rows, err := global.DBEngine.Query(sql, key)
+	rows, err := global.ReadDBEngine.Query(sql, key)
 	if err != nil {
 		global.Logger.Fatal(err)
 		return
@@ -40,7 +40,7 @@ func GetRequestData(key string, reqType global.RequestType, actionType global.Ac
 	for rows.Next() {
 		key := KeyData{}
 		_ = rows.Scan(&key.instance_key, &key.dcmfile, &key.imgfile, &key.dcmremotekey, &key.jpgremotekey, &key.dcmlocalstatus, &key.jpglocalstatus, &key.dcmcloudstatus, &key.jpgcloudstatus, &key.ip, &key.virpath, &key.dcmstatus, &key.jpgstatus)
-		if key.imgfile.String != "" && key.jpgstatus.Int16 == int16(global.FileNotExist) && (key.jpglocalstatus.Int16 == int16(global.FileExist) || key.jpgcloudstatus.Int16 == int16(global.FileExist)) {
+		if key.imgfile.String != "" && key.jpgstatus.Int16 != int16(global.FileExist) && (key.jpglocalstatus.Int16 == int16(global.FileExist) || key.jpgcloudstatus.Int16 == int16(global.FileExist)) {
 			file_path := general.GetFilePath(key.imgfile.String, key.ip.String, key.virpath.String)
 			data := global.ObjectData{
 				InstanceKey: key.instance_key.Int64,
@@ -52,7 +52,7 @@ func GetRequestData(key string, reqType global.RequestType, actionType global.Ac
 			}
 			global.ObjectDataChan <- data
 		}
-		if key.dcmfile.String != "" && key.dcmstatus.Int16 == int16(global.FileNotExist) && (key.dcmlocalstatus.Int16 == int16(global.FileExist) || key.dcmcloudstatus.Int16 == int16(global.FileExist)) {
+		if key.dcmfile.String != "" && key.dcmstatus.Int16 != int16(global.FileExist) && (key.dcmlocalstatus.Int16 == int16(global.FileExist) || key.dcmcloudstatus.Int16 == int16(global.FileExist)) {
 			file_path := general.GetFilePath(key.dcmfile.String, key.ip.String, key.virpath.String)
 			data := global.ObjectData{
 				InstanceKey: key.instance_key.Int64,
@@ -80,21 +80,21 @@ func UpdateUplaod(key int64, filetype global.FileModel, status bool) {
 			if status {
 				global.Logger.Info("***公有云DCM数据上传成功，更新状态***")
 				sql := `update file_remote fr set fr.dcm_file_exist_obs_cloud = 1,fr.dcm_location_code_obs_cloud = ?,fr.dcm_update_time_obs_cloud = ? where fr.instance_key = ?;`
-				global.DBEngine.Exec(sql, global.ObjectSetting.OBJECT_Upload_Success_Code, curtime, key)
+				global.WriteDBEngine.Exec(sql, global.ObjectSetting.OBJECT_Upload_Success_Code, curtime, key)
 			} else {
 				global.Logger.Info("***公有云DCM数据上传失败，更新状态***")
 				sql := `update file_remote fr set fr.dcm_file_exist_obs_cloud = 2 where fr.instance_key = ?;`
-				global.DBEngine.Exec(sql, key)
+				global.WriteDBEngine.Exec(sql, key)
 			}
 		case global.JPG:
 			if status {
 				global.Logger.Info("***公有云JPG数据上传成功，更新状态***")
 				sql := `update file_remote fr set fr.img_file_exist_obs_cloud = 1,fr.img_update_time_obs_cloud = ? where fr.instance_key = ?;`
-				global.DBEngine.Exec(sql, curtime, key)
+				global.WriteDBEngine.Exec(sql, curtime, key)
 			} else {
 				global.Logger.Info("***公有云JPG数据上传失败，更新状态***")
 				sql := `update file_remote fr set fr.img_file_exist_obs_cloud = 2 where fr.instance_key = ?;`
-				global.DBEngine.Exec(sql, key)
+				global.WriteDBEngine.Exec(sql, key)
 			}
 		}
 	case global.PrivateCloud:
@@ -103,22 +103,22 @@ func UpdateUplaod(key int64, filetype global.FileModel, status bool) {
 			if status {
 				global.Logger.Info("***私有云DCM数据上传成功，更新状态***")
 				sql := `update file_remote fr set fr.dcm_file_exist_obs_local = 1,fr.dcm_location_code_obs_local = ?,fr.dcm_update_time_obs_local = ? where fr.instance_key = ?;`
-				global.DBEngine.Exec(sql, global.ObjectSetting.OBJECT_Upload_Success_Code, curtime, key)
+				global.WriteDBEngine.Exec(sql, global.ObjectSetting.OBJECT_Upload_Success_Code, curtime, key)
 
 			} else {
 				global.Logger.Info("***私有云DCM数据上传失败，更新状态***")
 				sql := `update file_remote fr set fr.dcm_file_exist_obs_local = 2 where fr.instance_key = ?;`
-				global.DBEngine.Exec(sql, key)
+				global.WriteDBEngine.Exec(sql, key)
 			}
 		case global.JPG:
 			if status {
 				global.Logger.Info("***私有云JPG数据上传成功，更新状态***")
 				sql := `update file_remote fr set fr.img_file_exist_obs_local = 1,fr.img_update_time_obs_local = ? where fr.instance_key = ?;`
-				global.DBEngine.Exec(sql, curtime, key)
+				global.WriteDBEngine.Exec(sql, curtime, key)
 			} else {
 				global.Logger.Info("***私有云JPG数据上传失败，更新状态***")
 				sql := `update file_remote fr set fr.img_file_exist_obs_local = 2 where fr.instance_key = ?;`
-				global.DBEngine.Exec(sql, key)
+				global.WriteDBEngine.Exec(sql, key)
 			}
 		}
 	}
@@ -135,21 +135,21 @@ func UpdateDown(key int64, filetype global.FileModel, status bool) {
 		if status {
 			global.Logger.Info("***DCM数据下载成功，更新状态***")
 			sql := `update file_remote fr set fr.dcm_file_exist = 1,fr.dcm_update_time_retrieve = ? where fr.instance_key = ?;`
-			global.DBEngine.Exec(sql, curtime, key)
+			global.WriteDBEngine.Exec(sql, curtime, key)
 		} else {
 			global.Logger.Info("***DCM数据下载失败，更新状态***")
 			sql := `update file_remote fr set fr.dcm_file_exist = 2 where fr.instance_key = ?;`
-			global.DBEngine.Exec(sql, key)
+			global.WriteDBEngine.Exec(sql, key)
 		}
 	case global.JPG:
 		if status {
 			global.Logger.Info("***JPG数据下载成功，更新状态***")
 			sql := `update file_remote fr set fr.img_file_exist = 1 where fr.instance_key = ?;`
-			global.DBEngine.Exec(sql, key)
+			global.WriteDBEngine.Exec(sql, key)
 		} else {
 			global.Logger.Info("***JPG数据下载失败，更新状态***")
 			sql := `update file_remote fr set fr.img_file_exist = 2 where fr.instance_key = ?;`
-			global.DBEngine.Exec(sql, key)
+			global.WriteDBEngine.Exec(sql, key)
 		}
 	}
 }

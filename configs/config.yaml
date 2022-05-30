@@ -20,6 +20,7 @@ Database:
   DBType: mysql
   MaxIdleConns: 100
   MaxOpenConns: 100
+  MaxLifetime: 60
 Object:
   # 医院 storageId + resName 可以唯一确定 resId
   OBJECT_ResId: c09fd3b6bdbf420b848e5a9eeca38650

@@ -24,6 +24,7 @@ type DatabaseSettingS struct {
 	DBType       string
 	MaxIdleConns int
 	MaxOpenConns int
+	MaxLifetime  int
 }
 
 type ObjectSettingS struct {
