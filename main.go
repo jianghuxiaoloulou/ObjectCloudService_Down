@@ -32,6 +32,7 @@ func main() {
 			}
 		}
 	}()
+	// TestData()
 	web()
 }
 
@@ -65,4 +66,16 @@ func web() {
 		MaxHeaderBytes: 1 << 20,
 	}
 	ser.ListenAndServe()
+}
+
+func TestData() {
+	data := global.ObjectData{
+		InstanceKey: 1,
+		FileKey:     "Windows 7 x86-s001.vmdk",
+		FilePath:    "D:\\work\\ZSH\\Windows 7 x86-s001_test.vmdk",
+		ActionType:  global.DOWNLOAD,
+		FileType:    global.JPG,
+		Count:       1,
+	}
+	global.ObjectDataChan <- data
 }

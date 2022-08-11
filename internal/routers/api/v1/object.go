@@ -37,7 +37,21 @@ func ByUidEncUpload(c *gin.Context) {
 		// 失败：
 		app.NewResponse(c).ToErrorResponse(errcode.ServerError)
 	}
+}
 
+// 通过InstanceKey上传数据
+func ByInstanceKeyUpload(c *gin.Context) {
+	id := c.Param("InstanceKey")
+	global.Logger.Info("需要下载的InstanceKey是：", id)
+	if id != "" {
+		// 成功：
+		app.NewResponse(c).ToResponse(nil)
+		// 获取下载任务：
+		model.GetRequestData(id, global.InstanceKey, global.UPLOAD)
+	} else {
+		// 失败：
+		app.NewResponse(c).ToErrorResponse(errcode.ServerError)
+	}
 }
 
 // 通过检查号下载
@@ -64,6 +78,21 @@ func ByUidEncDownData(c *gin.Context) {
 		app.NewResponse(c).ToResponse(nil)
 		// 获取下载任务：
 		model.GetRequestData(id, global.UidEnc, global.DOWNLOAD)
+	} else {
+		// 失败：
+		app.NewResponse(c).ToErrorResponse(errcode.ServerError)
+	}
+}
+
+// 通过InstanceKey下载数据
+func ByInstanceKeyDownData(c *gin.Context) {
+	id := c.Param("InstanceKey")
+	global.Logger.Info("需要下载的InstanceKey是：", id)
+	if id != "" {
+		// 成功：
+		app.NewResponse(c).ToResponse(nil)
+		// 获取下载任务：
+		model.GetRequestData(id, global.InstanceKey, global.DOWNLOAD)
 	} else {
 		// 失败：
 		app.NewResponse(c).ToErrorResponse(errcode.ServerError)

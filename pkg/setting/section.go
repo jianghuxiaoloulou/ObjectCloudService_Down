@@ -36,6 +36,10 @@ type ObjectSettingS struct {
 	OBJECT_Upload_Success_Code int
 	OBJECT_Count               int
 	OBJECT_Store_Type          int
+	OBJECT_Interface_Type      int
+	OBJECT_Temp_GET_Down       string
+	OBJECT_Temp_GET_Upload     string
+	File_Fragment_Size         int
 }
 
 func (s *Setting) ReadSection(k string, v interface{}) error {

@@ -15,14 +15,18 @@ func NewRouter() *gin.Engine {
 
 	apiv1 := r.Group("/api/v1")
 	{
-		// 通过检查号上传
+		// 通过检查号上传数据
 		apiv1.POST("/Object/Upload/AccessNumber/:AccessNumber", v1.ByAccessNunUpload)
-		// 通过uid_enc上传
+		// 通过uid_enc上传数据
 		apiv1.POST("/Object/Upload/UidEnc/:UidEnc", v1.ByUidEncUpload)
-		// 通过检查号下载
+		// 通过instanceKey上传数据
+		apiv1.POST("/Object/Upload/InstanceKey/:InstanceKey", v1.ByInstanceKeyUpload)
+		// 通过检查号下载数据
 		apiv1.GET("/Object/Down/AccessNumber/:AccessNumber", v1.ByAccessNumDownData)
 		// 通过uid_enc下载数据
 		apiv1.GET("/Object/Down/UidEnc/:UidEnc", v1.ByUidEncDownData)
+		// 通过instance下载数据
+		apiv1.GET("/Object/Down/InstanceKey/:InstanceKey", v1.ByInstanceKeyDownData)
 	}
 	return r
 }

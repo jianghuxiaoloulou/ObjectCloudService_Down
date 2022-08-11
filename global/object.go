@@ -6,6 +6,12 @@ type RequestType int
 const (
 	AccessNumber RequestType = iota // 检查单
 	UidEnc                          // 检查单ID
+	InstanceKey                     // Instance_key
+)
+
+const (
+	Interface_Type_Platform int = iota // 通过平台转发的下载模式
+	Interfacce_Type_S3                 // 通过S3下载模式
 )
 
 // 数据处理模式

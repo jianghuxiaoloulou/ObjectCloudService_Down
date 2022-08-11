@@ -39,5 +39,25 @@ Object:
   OBJECT_Upload_Success_Code: 1
   # 设置操作失败补偿次数
   OBJECT_Count: 3
-   # 上传存储类型：（0：公有云，1：私有云）
+   # 下载存储类型：（0：公有云，1：私有云）
   OBJECT_Store_Type: 0
+  # 大文件分段限制
+  # 分段依据大小8M
+  File_Fragment_Size: 8
+  # 增加临时下载地址
+  # 接口调用类型：（1.通过S3地址直接下载. 0.通过平台接转发下载）
+  OBJECT_Interface_Type: 1
+  # 临时下载地址
+  OBJECT_Temp_GET_Down: http://cloud-store.shulan.com/v1/object/inquiry
+  # 临时上传地址
+  OBJECT_Temp_GET_Upload: http://172.16.0.16:31460/v1/object/input
+
+  # 下载接口
+  # [GET] http://127.0.0.1/api/v1/Object/Down/AccessNumber/ZMCT123456
+  # [GET] http://127.0.0.1/api/v1/Object/Down/UidEnc/ab352356vr322434ser
+  # [GET] http://127.0.0.1/api/v1/Object/Down/InstanceKey/654324
+
+  # 上传接口
+  # [POST] http://127.0.0.1/api/v1/Object/Upload/AccessNumber/ZMCT123456
+  # [POST] http://127.0.0.1/api/v1/Object/Upload/UidEnc/ab352356vr322434ser
+  # [POST] http://127.0.0.1/api/v1/Object/Upload/InstanceKey/654324
