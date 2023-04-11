@@ -11,8 +11,9 @@ import (
 
 // 通过检查号上传
 func ByAccessNunUpload(c *gin.Context) {
+	reqIP := c.ClientIP()
 	id := c.Param("AccessNumber")
-	global.Logger.Info("需要上传的检查号是：", id)
+	global.Logger.Info("请求的IP: ", reqIP, "需要上传的检查号是：", id)
 	if id != "" {
 		// 成功：
 		app.NewResponse(c).ToResponse(nil)
@@ -26,8 +27,10 @@ func ByAccessNunUpload(c *gin.Context) {
 
 // 通过UidEnc上传
 func ByUidEncUpload(c *gin.Context) {
+	reqIP := c.ClientIP()
+
 	id := c.Param("UidEnc")
-	global.Logger.Info("需要下载的UidEnc是：", id)
+	global.Logger.Info("请求的IP: ", reqIP, "需要下载的UidEnc是：", id)
 	if id != "" {
 		// 成功：
 		app.NewResponse(c).ToResponse(nil)
@@ -56,8 +59,9 @@ func ByInstanceKeyUpload(c *gin.Context) {
 
 // 通过检查号下载
 func ByAccessNumDownData(c *gin.Context) {
+	reqIP := c.ClientIP()
 	id := c.Param("AccessNumber")
-	global.Logger.Info("需要下载的检查号是：", id)
+	global.Logger.Info("请求的IP: ", reqIP, " 需要下载的检查号是：", id)
 	if id != "" {
 		// 成功：
 		app.NewResponse(c).ToResponse(nil)
@@ -71,8 +75,9 @@ func ByAccessNumDownData(c *gin.Context) {
 
 // 通过UidEnc下载数据
 func ByUidEncDownData(c *gin.Context) {
+	reqIP := c.ClientIP()
 	id := c.Param("UidEnc")
-	global.Logger.Info("需要下载的UidEnc是：", id)
+	global.Logger.Info("请求的IP: ", reqIP, " 需要下载的UidEnc是：", id)
 	if id != "" {
 		// 成功：
 		app.NewResponse(c).ToResponse(nil)

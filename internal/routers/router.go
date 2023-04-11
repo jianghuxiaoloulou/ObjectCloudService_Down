@@ -27,6 +27,9 @@ func NewRouter() *gin.Engine {
 		apiv1.GET("/Object/Down/UidEnc/:UidEnc", v1.ByUidEncDownData)
 		// 通过instance下载数据
 		apiv1.GET("/Object/Down/InstanceKey/:InstanceKey", v1.ByInstanceKeyDownData)
+
+		// test
+		apiv1.POST("/SaveFile", v1.ByAccessNunUpload)
 	}
 	return r
 }
